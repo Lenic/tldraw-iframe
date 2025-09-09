@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Subject, catchError, finalize, of, switchMap, type Observable } from 'rxjs';
+import { Subject, combineLatest, finalize, map, race, share, switchMap, take, tap, timer } from 'rxjs';
 
 import type { MouseEvent } from 'react';
+import type { Observable } from 'rxjs';
 
 export const useObservableEvent = <T extends HTMLElement = HTMLElement, TEvent = MouseEvent<T>>(
   action: (event: TEvent) => Observable<any>,
@@ -25,27 +26,18 @@ export const useObservableEvent = <T extends HTMLElement = HTMLElement, TEvent =
       .pipe(
         switchMap((e) => {
           setWorking(true);
-          let token: ReturnType<typeof setTimeout> | null = setTimeout(() => {
-            token = null;
-            setPending(true);
-          }, delay);
+          const ajax$ = actionRef.current(e).pipe(take(1), share());
 
-          return actionRef.current(e).pipe(
+          const notifier$ = race(ajax$.pipe(map(() => false)), timer(delay).pipe(map(() => true))).pipe(
+            tap((val) => setPending(val)),
+          );
+
+          return combineLatest([ajax$, notifier$]).pipe(
             finalize(() => {
               setWorking(false);
-
-              if (token) clearTimeout(token);
               setPending(false);
             }),
-            catchError((err) => {
-              if (errorActionRef.current) {
-                errorActionRef.current(err);
-              } else {
-                console.error('useAsyncEvent: ', e);
-              }
-
-              return of();
-            }),
+            map((v) => v[0]),
           );
         }),
       )
