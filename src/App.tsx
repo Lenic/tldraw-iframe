@@ -1,7 +1,6 @@
 import { Tldraw } from 'tldraw';
 
 import { setEditor } from './constants';
-import { CardShapeUtil } from './shapes/card';
 import { IframeShapeUtil } from './shapes/iframe';
 import { Toolbar } from './toolbar';
 
@@ -11,7 +10,7 @@ import 'tldraw/tldraw.css';
 import './index.css';
 
 const components: TLComponents = { Toolbar };
-const shapes = [CardShapeUtil, IframeShapeUtil];
+const shapes = [IframeShapeUtil];
 
 function App() {
   return (
