@@ -1,29 +1,23 @@
-import { Tldraw, createShapeId } from 'tldraw';
-import 'tldraw/tldraw.css';
-import { setEditor, editor$ } from './constants';
+import { Tldraw } from 'tldraw';
 
+import { setEditor } from './constants';
 import { CardShapeUtil } from './shapes/card';
 import { IframeShapeUtil } from './shapes/iframe';
+import { Toolbar } from './toolbar';
 
-const MyCustomShapes = [CardShapeUtil, IframeShapeUtil];
+import type { TLComponents } from 'tldraw';
 
-editor$.subscribe((editor) => {
-  debugger;
-  editor.createShapes([{ id: createShapeId(), type: 'iframe' }]);
+import 'tldraw/tldraw.css';
+import './index.css';
 
-  editor.selectAll();
-
-  editor.zoomToSelection({
-    animation: { duration: 618 },
-  });
-});
+const components: TLComponents = { Toolbar };
+const shapes = [CardShapeUtil, IframeShapeUtil];
 
 function App() {
   return (
     <div className="absolute inset-0">
-      <Tldraw onMount={setEditor} shapeUtils={MyCustomShapes} />
+      <Tldraw onMount={setEditor} shapeUtils={shapes} components={components} />
     </div>
   );
 }
-
 export default App;
