@@ -1,14 +1,16 @@
 import { createPopper } from '@popperjs/core';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BehaviorSubject,
   combineLatest,
+  concatMap,
   distinctUntilChanged,
   EMPTY,
   filter,
   finalize,
   fromEvent,
   map,
+  of,
   switchMap,
   take,
   tap,
@@ -50,7 +52,9 @@ export const Popover: FC<PopoverProps> = (props) => {
   const instanceRef = useRef<Instance | null>(null);
   useEffect(() => handleClearInstance, [handleClearInstance]);
 
-  const togglePopover = useCallback(() => setIsOpen((prev) => !prev), []);
+  const togglePopover = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
   useEffect(() => {
     const subscription = open$
@@ -61,20 +65,24 @@ export const Popover: FC<PopoverProps> = (props) => {
 
           return combineLatest([
             fromEvent(window, 'mousedown'),
-            reference$.pipe(filter((el) => !!el)),
-            popper$.pipe(filter((el) => !!el)),
+            reference$.pipe(concatMap((el) => (el ? of(el) : EMPTY))),
+            popper$.pipe(concatMap((el) => (el ? of(el) : EMPTY))),
           ]).pipe(
             filter(
               ([event, reference, popper]) =>
-                !reference!.contains(event.target as Node) && !popper!.contains(event.target as Node),
+                !reference.contains(event.target as Node) && !popper.contains(event.target as Node),
             ),
             take(1),
-            tap(() => setIsOpen(false)),
+            tap(() => {
+              setIsOpen(false);
+            }),
           );
         }),
       )
       .subscribe();
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [open$, reference$, popper$]);
 
   useEffect(() => {
@@ -84,10 +92,13 @@ export const Popover: FC<PopoverProps> = (props) => {
         switchMap((open) => {
           if (!open) return EMPTY;
 
-          return combineLatest([reference$.pipe(filter((el) => !!el)), popper$.pipe(filter((el) => !!el))]).pipe(
+          return combineLatest([
+            reference$.pipe(concatMap((el) => (el ? of(el) : EMPTY))),
+            popper$.pipe(concatMap((el) => (el ? of(el) : EMPTY))),
+          ]).pipe(
             tap(handleClearInstance),
             map(([reference, popper]) =>
-              createPopper(reference!, popper!, {
+              createPopper(reference, popper, {
                 placement,
                 modifiers: [
                   { name: 'offset', options: { offset: [offsetX, offsetY] } },
@@ -101,10 +112,14 @@ export const Popover: FC<PopoverProps> = (props) => {
         }),
       )
       .subscribe();
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [open$, placement, offsetX, offsetY, reference$, popper$, handleClearInstance]);
 
-  const handleClose = useCallback(() => setIsOpen(false), []);
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
   return (
     <div className={props.className ?? ''}>

@@ -1,4 +1,15 @@
-import { concatMap, distinctUntilChanged, EMPTY, map, of, ReplaySubject, share, shareReplay, tap } from 'rxjs';
+import {
+  concatMap,
+  distinctUntilChanged,
+  EMPTY,
+  finalize,
+  map,
+  of,
+  ReplaySubject,
+  share,
+  shareReplay,
+  tap,
+} from 'rxjs';
 
 import { InitialMeta } from './utils/initial-meta';
 
@@ -19,14 +30,16 @@ export const editor$ = nullableEditor$.pipe(
 );
 
 let initialMeta: InitialMeta | null = null;
+function cleanUpMeta() {
+  initialMeta?.clear();
+  initialMeta = null;
+}
+
 export const initialMeta$ = editor$.pipe(
-  tap(() => {
-    initialMeta?.clear();
-  }),
-  map((editor) => new InitialMeta(editor)),
-  tap((meta) => {
-    initialMeta = meta;
-  }),
+  tap(cleanUpMeta),
+  map((editor) => (initialMeta = new InitialMeta(editor))),
+  finalize(cleanUpMeta),
   shareReplay(1),
 );
+// at least one subscriber
 initialMeta$.subscribe();
