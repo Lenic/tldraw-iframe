@@ -72,7 +72,7 @@ export class IframeShapeUtil extends ShapeUtil<IframeShape> {
           <iframe
             src={url}
             className='box-border border-2 border-[#3182ed] w-full h-full'
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts allow-same-origin allow-forms"
           />
         </div>
       </HTMLContainer>
