@@ -1,21 +1,14 @@
-import type {
-  Editor,
-  Geometry2d,
-  TLBaseShape,
-  TLGeometryOpts,
-  TLResizeInfo,
-} from 'tldraw';
+import type { Editor, Geometry2d, TLBaseShape, TLGeometryOpts, TLResizeInfo } from 'tldraw';
 
 import { HTMLContainer, Rectangle2d, resizeBox, ShapeUtil } from 'tldraw';
+
 import { initialMeta$ } from '../constants';
 
-// 1. 定义 shape 的数据类型
-export type IframeShape = TLBaseShape<
-  'iframe',
-  { url: string; w: number; h: number }
-> & { createAt: number; updateAt: number };
+export type IframeShape = TLBaseShape<'iframe', { url: string; w: number; h: number; title: string }> & {
+  createAt: number;
+  updateAt: number;
+};
 
-// 2. 定义 shape 工具
 export class IframeShapeUtil extends ShapeUtil<IframeShape> {
   static type = 'iframe' as const;
 
@@ -47,9 +40,10 @@ export class IframeShapeUtil extends ShapeUtil<IframeShape> {
 
   getDefaultProps(): IframeShape['props'] {
     return {
-      url: 'https://www.baidu.com/', // 默认链接
+      url: 'https://www.baidu.com/',
       w: 1250,
       h: 726,
+      title: 'Untitled',
     };
   }
 
@@ -61,26 +55,23 @@ export class IframeShapeUtil extends ShapeUtil<IframeShape> {
     });
   }
 
-  // 3. 渲染 shape
   component(shape: IframeShape) {
-    const { url, w, h } = shape.props;
+    const { url, w, h, title } = shape.props;
 
     return (
       <HTMLContainer>
         <div
+          className="relative"
           style={{
             width: `${w}px`,
             height: `${h}px`,
             pointerEvents: 'all',
           }}
         >
+          <div className="absolute -top-5 left-0 bg-[#3182ed] text-white h-5 leading-5 px-3 rounded-t-sm">{title}</div>
           <iframe
             src={url}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-            }}
+            className='box-border border-2 border-[#3182ed] w-full h-full'
             sandbox="allow-scripts allow-same-origin"
           />
         </div>
@@ -92,16 +83,13 @@ export class IframeShapeUtil extends ShapeUtil<IframeShape> {
     return <rect width={shape.props.w} height={shape.props.h} />;
   }
 
-  // 4. 是否可以绑定文本
   canBind = () => false;
 
-  // 5. 是否可以调整大小
   canResize = () => true;
 
   onResize(shape: IframeShape, info: TLResizeInfo<IframeShape>) {
     return resizeBox(shape, info);
   }
 
-  // 6. 是否可以旋转
   canRotate = () => true;
 }
