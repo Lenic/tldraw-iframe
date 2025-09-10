@@ -26,10 +26,13 @@ function CreateIFrameCore({ onClose }: { onClose: () => void }) {
 
     const id = createShapeId();
     const data = new FormData(e.currentTarget);
+    const url = data.get('url') as string;
+    if (!url) return of(void 0);
+
     return editor$.pipe(
       take(1),
       tap((editor) =>
-        editor.createShapes([{ id, type: IframeShapeUtil.type, props: { url: data.get('url') as string } }]),
+        editor.createShapes([{ id, type: IframeShapeUtil.type, props: { url } }]),
       ),
       finalize(() => {
         onClose();
@@ -52,7 +55,7 @@ function CreateIFrameCore({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <form className='bg-gray-600 rounded-2xl p-4 text-white space-y-2' onSubmit={handleSubmit}>
+    <form className='bg-gray-600 rounded-2xl p-4 text-white space-y-2 text-sm' onSubmit={handleSubmit}>
       <header>Target URL Address</header>
       <input
         ref={setInput}
